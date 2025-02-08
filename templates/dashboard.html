@@ -174,6 +174,8 @@
 
   // 6) Audio Logging: Continuous 5-second interval
   let audioContext, analyser, microphone, dataArray;
+  let speechBuffer = '';  // Buffer to store speech over the last 5 seconds
+
   function startAudioLogging() {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
     analyser = audioContext.createAnalyser();
@@ -190,7 +192,7 @@
           const averageVolume = dataArray.reduce((sum, value) => sum + value) / dataArray.length;
 
           if (averageVolume > 50) { // Adjust this threshold based on your testing
-            logTimestamp("Loud sound detected.");
+            speechBuffer += "Loud sound detected. ";  // Append the detected speech to the buffer
           }
         }, 5000);  // Check audio every 5 seconds
       })
@@ -199,11 +201,6 @@
       });
   }
 
-  // Start the audio logging when the page loads
-  window.onload = function() {
-    startAudioLogging();
-  };
-
   // Speech recognition logging
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
   recognition.continuous = true;
@@ -211,10 +208,26 @@
 
   recognition.onresult = function(event) {
     const transcript = event.results[event.resultIndex][0].transcript;
-    logTimestamp("Speech detected: " + transcript);
+    speechBuffer += transcript + ' ';  // Add the recognized speech to the buffer
   };
 
   recognition.start();
+
+  // Log the speech every 5 seconds, and then reset buffer
+  let previousRaisedHandsCount = 0;  // Store raised hands count
+
+  setInterval(() => {
+    const raisedHands = document.getElementById("raisedCount").innerText;
+    if (speechBuffer.trim()) {
+      logTimestamp(`Hands Raised: ${raisedHands} | Speech: ${speechBuffer.trim()}`);
+      speechBuffer = '';  // Clear the buffer after logging
+    }
+  }, 5000);  // Log every 5 seconds
+
+  // Start the audio logging when the page loads
+  window.onload = function() {
+    startAudioLogging();
+  };
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
