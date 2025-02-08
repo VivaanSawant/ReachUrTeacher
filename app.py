@@ -35,6 +35,7 @@ def init_db():
             image BLOB
         )
     ''')
+    cur.execute("DELETE FROM faces")
     conn.commit()
     conn.close()
 

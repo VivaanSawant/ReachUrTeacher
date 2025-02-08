@@ -260,9 +260,9 @@
     // Update each face-card's stopwatch display based on its data-start attribute.
     function updateStopwatches() {
       const faceCards = document.querySelectorAll(".face-card");
-      faceCards.forEach((card) => {
+      faceCards.forEach((card, i) => {
         const start = parseFloat(card.getAttribute("data-start"));
-        if (!isNaN(start)) {       
+        if (i === 0 && !isNaN(start)) {       
           const stopwatchDiv = card.querySelector(".stopwatch");
           if (stopwatchDiv) {
             stopwatchDiv.textContent = formatTime(start);
