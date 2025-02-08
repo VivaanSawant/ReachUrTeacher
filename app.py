@@ -1,7 +1,8 @@
 import cv2
 import mediapipe as mp
 import base64
-import time  # NEW: to track timestamps
+import time
+import sqlite3
 from flask import Flask, render_template, Response, request
 import numpy as np
 from collections import deque
@@ -18,25 +19,33 @@ MIN_FACE_CONFIDENCE = 0.75
 HAND_FACE_MAX_DISTANCE_RATIO = 1.5
 SNAPSHOT_HISTORY = 5
 
-# Speech recognition data storage
-speech_data = []
+# --- Database Initialization ---
+def init_db():
+    conn = sqlite3.connect('faces.db')
+    cur = conn.cursor()
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS faces (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            face_key TEXT,
+            timestamp REAL,
+            image BLOB
+        )
+    ''')
+    conn.commit()
+    conn.close()
 
-# # --- Speech Recognition Setup ---
-# def recognize_speech():
-#     recognizer = sr.Recognizer()
-#     with sr.Microphone() as source:
-#         print("Listening...")
-#         while True:
-#             try:
-#                 audio = recognizer.listen(source)
-#                 text = recognizer.recognize_google(audio)
-#                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-#                 speech_data.append({"timestamp": timestamp, "text": text})
-#                 print(f"[{timestamp}] {text}")
-#             except sr.UnknownValueError:
-#                 pass
-#             except sr.RequestError:
-#                 speech_data.append({"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "text": "[API Error]"})
+def store_face_snapshot(face_key, face_img):
+    ret, buf = cv2.imencode('.jpg', face_img)
+    if ret:
+        img_bytes = buf.tobytes()
+        conn = sqlite3.connect('faces.db')
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO faces (face_key, timestamp, image) VALUES (?, ?, ?)",
+            (face_key, time.time(), img_bytes)
+        )
+        conn.commit()
+        conn.close()
 
 # --- Face and Hand Tracking Class ---
 class FaceHandTracker:
@@ -49,7 +58,9 @@ class FaceHandTracker:
         )
         self.tracked_faces = {}
         self.hand_history = deque(maxlen=SNAPSHOT_HISTORY)
-        self.face_first_seen = {}  # NEW: track when each face-key first appeared
+        # For tracking hand-raise status:
+        self.face_active = {}         # True when the face is currently "active" (hand raised)
+        self.face_active_start = {}   # Timestamp when the face became active (for stopwatch)
 
     def _is_open_hand(self, landmarks):
         tips = [
@@ -70,7 +81,7 @@ class FaceHandTracker:
         )
 
     def process_frame(self, frame):
-        # Flip and convert for processing
+        # Flip the frame (mirror view) and convert color space for processing.
         frame = cv2.flip(frame, 1)
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         
@@ -102,19 +113,20 @@ class FaceHandTracker:
 
         self.hand_history.append(active_hands)
 
-        # --- FACE-HAND PAIRING & Snapshot ---
+        # --- FACE-HAND PAIRING & Stopwatch ---
         current_snapshots = {}
         for (fx, fy, fw, fh) in faces:
-            face_center = (fx + fw//2, fy + fh//2)
+            face_center = (fx + fw // 2, fy + fh // 2)
             cv2.circle(frame, face_center, 3, (0, 255, 255), -1)
+            face_key = f"{fx}_{fy}_{fw}_{fh}"
 
+            # Check if any hand in recent history is near this face.
             hand_near = False
             for hands in self.hand_history:
                 for (wrist, middle) in hands:
                     hand_center = ((wrist[0] + middle[0]) // 2, (wrist[1] + middle[1]) // 2)
                     max_distance = fw * HAND_FACE_MAX_DISTANCE_RATIO
                     distance = np.linalg.norm(np.array(face_center) - np.array(hand_center))
-                    
                     if distance < max_distance:
                         hand_near = True
                         break
@@ -122,21 +134,30 @@ class FaceHandTracker:
                     break
 
             if hand_near:
-                face_img = frame[max(fy,0):min(fy+fh, frame.shape[0]),
-                                 max(fx,0):min(fx+fw, frame.shape[1])]
+                # Capture the face image.
+                face_img = frame[max(fy, 0):min(fy+fh, frame.shape[0]),
+                                 max(fx, 0):min(fx+fw, frame.shape[1])]
                 if face_img.size > 0:
-                    face_key = f"{fx}_{fy}_{fw}_{fh}"
                     current_snapshots[face_key] = face_img
-                    cv2.rectangle(frame, (fx, fy), (fx+fw, fy+fh), (0,255,0), 3)
+                    cv2.rectangle(frame, (fx, fy), (fx+fw, fy+fh), (0, 255, 0), 3)
 
-                    # NEW: If it's the first time we've seen this face_key, record the time
-                    if face_key not in self.face_first_seen:
-                        self.face_first_seen[face_key] = time.time()
+                    # If this face is not yet active (i.e. hand was just raised), mark active,
+                    # record the stopwatch start time, and store a snapshot.
+                    if not self.face_active.get(face_key, False):
+                        self.face_active[face_key] = True
+                        self.face_active_start[face_key] = time.time()
+                        store_face_snapshot(face_key, face_img)
+                    # If already active, the stopwatch continues (do nothing extra here).
+            else:
+                # If no hand is near, mark the face as inactive and clear its stopwatch start time.
+                self.face_active[face_key] = False
+                if face_key in self.face_active_start:
+                    del self.face_active_start[face_key]
 
         self.tracked_faces = current_snapshots
         return frame
 
-# NOTE: You had two generate_frames definitions; let's unify them properly:
+# --- Frame Generation for Video Feed ---
 def generate_frames(camera_id=0):
     cap = cv2.VideoCapture(camera_id)
     while True:
@@ -156,6 +177,7 @@ def generate_frames(camera_id=0):
 
 tracker = FaceHandTracker()
 
+# --- Routes ---
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -182,30 +204,48 @@ def video_feed():
 
 @app.route('/faces_data')
 def faces_data():
-    """Return the queued face snapshots as HTML <div> tags:
-       1) data-start holds the epoch time they first appeared
-       2) .stopwatch can show the real-time timer in front-end
+    """
+    Returns HTML for each active face with a data-start attribute set to
+    the timestamp when the face became active (i.e. when the hand was raised).
+    The front-end JavaScript will use this timestamp to calculate the elapsed time.
     """
     html = ""
     for face_key, face_img in tracker.tracked_faces.items():
-        start_time = tracker.face_first_seen.get(face_key, time.time())
+        # Use the stopwatch start time for this face.
+        start_time = tracker.face_active_start.get(face_key, time.time())
         ret, buf = cv2.imencode('.jpg', face_img)
         if ret:
             b64_face = base64.b64encode(buf.tobytes()).decode('utf-8')
             html += f'''
-            <div class="face-card"
-                 data-start="{start_time}"
-                 data-facekey="{face_key}">
+            <div class="face-card" data-start="{start_time}" data-facekey="{face_key}">
               <img src="data:image/jpeg;base64,{b64_face}" alt="Detected Face" />
-              <!-- We'll add a stopwatch area below the face -->
               <div class="stopwatch"></div>
             </div>
             '''
     return html if html else "<div>No active hand-face pairs detected</div>"
 
+@app.route('/face_history')
+def face_history():
+    conn = sqlite3.connect('faces.db')
+    cur = conn.cursor()
+    cur.execute("SELECT face_key, timestamp, image FROM faces ORDER BY timestamp DESC")
+    rows = cur.fetchall()
+    conn.close()
+
+    html = ""
+    for face_key, ts, image in rows:
+        b64_face = base64.b64encode(image).decode('utf-8')
+        formatted_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(ts))
+        html += f'''
+            <div class="face-card" data-facekey="{face_key}" style="margin: 10px; display: inline-block;">
+                <img src="data:image/jpeg;base64,{b64_face}" alt="Face Snapshot" style="width:100px; height:100px; object-fit: cover;"/>
+                <div class="timestamp" style="font-size:0.8rem;">{formatted_time}</div>
+            </div>
+        '''
+    if not html:
+        html = "<div>No face snapshots found.</div>"
+    return html
+
 if __name__ == '__main__':
-    # Start the speech recognition process in a background thread
-    import threading
-    # threading.Thread(target=recognize_speech, daemon=True).start()
-    
+    init_db()
     app.run(debug=True)

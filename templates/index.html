@@ -9,7 +9,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
     
     body {
-      background-color: #0f172a; /* Dark navy background */
+      background-color: #0f172a;
       color: #ffffff;
       font-family: 'Inter', sans-serif;
     }
@@ -91,7 +91,6 @@
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg">
     <div class="container">
-      <!-- Adjust the image path as needed; if image.png is in static/, do url_for('static', ...) -->
       <a class="navbar-brand" href="#">
         <img src="{{ url_for('static', filename='image.png') }}" alt="ReachUrTeacher Logo">
         <span>ReachUrTeacher</span>
@@ -107,7 +106,6 @@
   <div class="hero">
     <h1>Empower Your Classroom Interaction</h1>
     <p>ReachUrTeacher revolutionizes the way students engage in class. <br> Our hand-raising detection system ensures every voice is heard.</p>
-    <!-- Use Flask's url_for('dashboard') instead of dashboard.html -->
     <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Get Started</a>
   </div>
 

@@ -9,13 +9,11 @@
   <!-- Google Fonts: Inter -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
   <style>
-    /* Global Styles */
     body {
       background-color: #10182f;
       color: #fff;
       font-family: 'Inter', sans-serif;
     }
-    /* Navbar Styles (from the first code) */
     nav.navbar {
       background-color: #0d111b;
       padding: 10px 30px;
@@ -40,7 +38,6 @@
     .navbar a:hover {
       color: #3b82f6;
     }
-    /* Dropdown Menu Fix */
     .dropdown-menu {
       overflow: hidden;
     }
@@ -49,7 +46,6 @@
       width: 100%;
       box-sizing: border-box;
     }
-    /* Dashboard & Other Styles */
     .container {
       max-width: 1200px;
       margin: 0 auto;
@@ -151,7 +147,6 @@
     .clear-btn:hover {
       background-color: #c72f3f;
     }
-    /* Timestamps Section */
     .timestamp-section {
       margin-top: 1rem;
       padding: 1rem;
@@ -175,10 +170,9 @@
   </style>
 </head>
 <body>
-  <!-- Navbar using first code's elements -->
+  <!-- Navbar -->
   <nav class="navbar navbar-expand-lg">
     <div class="container">
-      <!-- Logo and Brand -->
       <a class="navbar-brand" href="{{ url_for('index') }}">
         <img src="{{ url_for('static', filename='image.png') }}" alt="ReachUrTeacher Logo">
         <span>ReachUrTeacher</span>
@@ -186,10 +180,8 @@
       <div class="collapse navbar-collapse">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item"><a class="nav-link" href="#">Features</a></li>
-          <!-- Pricing removed -->
           <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
         </ul>
-        <!-- The "Select Camera" dropdown remains unchanged -->
         <div class="dropdown ms-3">
           <button class="btn btn-secondary dropdown-toggle" type="button" id="cameraDropdown" data-bs-toggle="dropdown" aria-expanded="false">
             Select Camera
@@ -223,17 +215,20 @@
       <button class="clear-btn" onclick="clearHands()">Clear Hands</button>
     </div>
 
+    <!-- Link to view stored face snapshots -->
+    <div style="margin-top: 1rem;">
+      <a href="{{ url_for('face_history') }}" class="btn btn-secondary">View Face History</a>
+    </div>
+
     <!-- Timestamp Section -->
     <div class="timestamp-section">
       <h3>Timestamps</h3>
-      <div id="timestampList">
-        <!-- Timestamped messages will appear here -->
-      </div>
+      <div id="timestampList"></div>
     </div>
   </div>
 
   <script>
-    // 1) Periodically fetch /faces_data
+    // Periodically fetch the latest active face data.
     function loadFaceData() {
       fetch("/faces_data")
         .then((res) => res.text())
@@ -256,7 +251,7 @@
         .catch((err) => console.error(err));
     }
 
-    // 2) Real-time stopwatch for each face-card
+    // Update each face-card's stopwatch display based on its data-start attribute.
     function updateStopwatches() {
       const now = Date.now() / 1000;
       const faceCards = document.querySelectorAll(".face-card");
@@ -279,19 +274,19 @@
       return m + ":" + (s < 10 ? "0" + s : s);
     }
 
-    // 3) Clear the queue (client-side)
+    // Clear the displayed active face queue and timestamp log.
     function clearHands() {
       document.getElementById("faceQueue").innerHTML = "";
       document.getElementById("raisedCount").innerText = "0";
       document.getElementById("timestampList").innerHTML = "";
     }
 
-    // 4) Switch camera feed by passing camera_id as query parameter
+    // Switch camera feed based on the selected camera.
     function switchCamera(cameraId) {
       document.getElementById("videoFeed").src = "/video_feed?camera_id=" + cameraId;
     }
 
-    // 5) Add timestamp and message to the timestamp section
+    // Log timestamps (if needed) for debugging or additional logging.
     function logTimestamp(message) {
       const timestamp = new Date().toLocaleTimeString();
       const timestampDiv = document.createElement("div");
@@ -300,11 +295,11 @@
       document.getElementById("timestampList").appendChild(timestampDiv);
     }
 
-    // Start periodic tasks
+    // Start periodic tasks.
     setInterval(loadFaceData, 2000);
     requestAnimationFrame(updateStopwatches);
 
-    // 6) Audio Logging with Speech Buffering
+    // Audio Logging and Speech Recognition (if enabled)
     let audioContext, analyser, microphone, dataArray;
     let speechBuffer = '';
 
@@ -322,7 +317,6 @@
           setInterval(() => {
             analyser.getByteFrequencyData(dataArray);
             const averageVolume = dataArray.reduce((sum, value) => sum + value) / dataArray.length;
-
             if (averageVolume > 50) {
               speechBuffer += "Loud sound detected. ";
             }
@@ -333,7 +327,6 @@
         });
     }
 
-    // Speech recognition logging
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     recognition.continuous = true;
     recognition.interimResults = false;
@@ -343,7 +336,6 @@
     };
     recognition.start();
 
-    // Log combined speech and hands data every 5 seconds
     setInterval(() => {
       const raisedHands = document.getElementById("raisedCount").innerText;
       if (speechBuffer.trim()) {
@@ -352,7 +344,6 @@
       }
     }, 5000);
 
-    // Start audio logging on page load
     window.onload = function() {
       startAudioLogging();
     };
