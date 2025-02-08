@@ -50,6 +50,9 @@
         <div id="faces"></div>
     </div>
 
+    <!-- Display the number of detected faces -->
+    <div id="handCount"></div>
+
     <script>
         let lastUpdate = 0;
         async function updateFaces() {
@@ -60,6 +63,13 @@
                     const response = await fetch("/faces_data");
                     const html = await response.text();
                     document.getElementById('faces').innerHTML = html;
+
+                    // Detect the number of face-card divs (i.e., the number of hands)
+                    const faceCards = document.querySelectorAll('.face-card');
+                    const numberOfHands = faceCards.length;
+                    
+                    // Display the count of hands
+                    document.getElementById('handCount').innerText = `Total Hands: ${numberOfHands}`;
                 } catch (error) {
                     console.error('Update error:', error);
                 }
