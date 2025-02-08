@@ -12,6 +12,7 @@
         }
         .container {
             display: flex;
+            flex-direction: column; /* Stack elements vertically */
             gap: 20px;
             padding: 20px;
         }
@@ -30,12 +31,26 @@
             padding: 10px;
             border-radius: 8px;
             animation: fadeIn 0.5s;
+            position: relative;
+            text-align: center;
         }
         .face-card img {
             width: 150px;
             height: 150px;
             object-fit: cover;
             border-radius: 4px;
+        }
+        .hand-label {
+            color: yellow;
+            font-size: 14px;
+            margin-top: 5px;
+            font-weight: bold;
+        }
+        .queue-label {
+            font-size: 18px;
+            color: #00ff00;
+            margin-bottom: 10px;
+            font-weight: bold;
         }
         @keyframes fadeIn {
             from { opacity: 0; }
@@ -47,10 +62,13 @@
     <h1>Hand-Triggered Face Snapshots</h1>
     <div class="container">
         <img id="videoFeed" src="{{ url_for('video_feed') }}" width="800">
-        <div id="faces"></div>
+        <div>
+            <div class="queue-label">Queue</div> <!-- Label above the face cards -->
+            <div id="faces"></div>
+        </div>
     </div>
 
-    <!-- Display the number of detected faces -->
+    <!-- Display the number of detected hands -->
     <div id="handCount"></div>
 
     <script>
@@ -67,7 +85,18 @@
                     // Detect the number of face-card divs (i.e., the number of hands)
                     const faceCards = document.querySelectorAll('.face-card');
                     const numberOfHands = faceCards.length;
-                    
+
+                    // Label each face-card with a number
+                    faceCards.forEach((card, index) => {
+                        let label = card.querySelector('.hand-label');
+                        if (!label) {
+                            label = document.createElement('div');
+                            label.className = 'hand-label';
+                            card.appendChild(label);
+                        }
+                        label.innerText = `Position ${index + 1}`;
+                    });
+
                     // Display the count of hands
                     document.getElementById('handCount').innerText = `Total Hands: ${numberOfHands}`;
                 } catch (error) {
