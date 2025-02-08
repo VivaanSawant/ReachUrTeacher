@@ -9,18 +9,6 @@
   <!-- Google Fonts: Inter -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
   <style>
-<<<<<<< Updated upstream
-    /* Global Styles (matching the Landing page) */
-    body {
-      background-color: #0f172a; /* Same dark navy background as the home page */
-      color: #ffffff;
-      font-family: 'Inter', sans-serif;
-    }
-    /* Navbar Styles */
-    nav.navbar {
-      background-color: #1e293b; /* Same navbar blue as the home page */
-      padding: 10px 30px;        /* Reduced vertical padding to 10px */
-=======
     /* Global Styles */
     body {
       background-color: #10182f;
@@ -31,30 +19,18 @@
     nav.navbar {
       background-color: #0d111b;
       padding: 10px 30px;
->>>>>>> Stashed changes
     }
     .navbar-brand {
       font-size: 1.5rem;
       font-weight: bold;
       display: flex;
       align-items: center;
-<<<<<<< Updated upstream
-=======
       color: #fff;
->>>>>>> Stashed changes
     }
     .navbar-brand img {
       height: 40px;
       margin-right: 10px;
     }
-<<<<<<< Updated upstream
-    .navbar-brand span {
-      font-weight: 700;
-      font-size: 1.5rem;
-      color: #ffffff;
-    }
-=======
->>>>>>> Stashed changes
     .navbar a {
       color: #cbd5e1;
       margin-left: 20px;
@@ -64,12 +40,7 @@
     .navbar a:hover {
       color: #3b82f6;
     }
-<<<<<<< Updated upstream
-    
-    /* Dropdown Menu Fix: Ensure hover background doesn't exceed dropdown width */
-=======
     /* Dropdown Menu Fix */
->>>>>>> Stashed changes
     .dropdown-menu {
       overflow: hidden;
     }
@@ -78,12 +49,7 @@
       width: 100%;
       box-sizing: border-box;
     }
-<<<<<<< Updated upstream
-    
-    /* Dashboard-specific Styles (unchanged) */
-=======
     /* Dashboard & Other Styles */
->>>>>>> Stashed changes
     .container {
       max-width: 1200px;
       margin: 0 auto;
@@ -209,12 +175,7 @@
   </style>
 </head>
 <body>
-<<<<<<< Updated upstream
-
-  <!-- Navbar -->
-=======
   <!-- Navbar using first code's elements -->
->>>>>>> Stashed changes
   <nav class="navbar navbar-expand-lg">
     <div class="container">
       <!-- Logo and Brand -->
@@ -228,10 +189,7 @@
           <!-- Pricing removed -->
           <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
         </ul>
-<<<<<<< Updated upstream
-=======
         <!-- The "Select Camera" dropdown remains unchanged -->
->>>>>>> Stashed changes
         <div class="dropdown ms-3">
           <button class="btn btn-secondary dropdown-toggle" type="button" id="cameraDropdown" data-bs-toggle="dropdown" aria-expanded="false">
             Select Camera
@@ -248,10 +206,7 @@
     </div>
   </nav>
 
-<<<<<<< Updated upstream
-=======
   <!-- Dashboard Content -->
->>>>>>> Stashed changes
   <div class="container">
     <div class="video-container">
       <div class="live-badge">LIVE</div>
@@ -328,11 +283,7 @@
     function clearHands() {
       document.getElementById("faceQueue").innerHTML = "";
       document.getElementById("raisedCount").innerText = "0";
-<<<<<<< Updated upstream
-      document.getElementById("timestampList").innerHTML = "";  // Clear timestamps too
-=======
       document.getElementById("timestampList").innerHTML = "";
->>>>>>> Stashed changes
     }
 
     // 4) Switch camera feed by passing camera_id as query parameter
@@ -349,14 +300,6 @@
       document.getElementById("timestampList").appendChild(timestampDiv);
     }
 
-<<<<<<< Updated upstream
-    // Start the periodic tasks
-    setInterval(loadFaceData, 2000);
-    requestAnimationFrame(updateStopwatches);
-
-    // 6) Audio Logging: Check audio level every 5 seconds
-    let audioContext, analyser, microphone, dataArray;
-=======
     // Start periodic tasks
     setInterval(loadFaceData, 2000);
     requestAnimationFrame(updateStopwatches);
@@ -365,7 +308,6 @@
     let audioContext, analyser, microphone, dataArray;
     let speechBuffer = '';
 
->>>>>>> Stashed changes
     function startAudioLogging() {
       audioContext = new (window.AudioContext || window.webkitAudioContext)();
       analyser = audioContext.createAnalyser();
@@ -381,25 +323,16 @@
             analyser.getByteFrequencyData(dataArray);
             const averageVolume = dataArray.reduce((sum, value) => sum + value) / dataArray.length;
 
-<<<<<<< Updated upstream
-            if (averageVolume > 50) { // Adjust threshold based on testing
-              logTimestamp("Loud sound detected.");
-            }
-          }, 5000);  // Check every 5 seconds
-=======
             if (averageVolume > 50) {
               speechBuffer += "Loud sound detected. ";
             }
           }, 5000);
->>>>>>> Stashed changes
         })
         .catch(err => {
           console.error('Error accessing microphone:', err);
         });
     }
 
-<<<<<<< Updated upstream
-=======
     // Speech recognition logging
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     recognition.continuous = true;
@@ -419,26 +352,10 @@
       }
     }, 5000);
 
->>>>>>> Stashed changes
     // Start audio logging on page load
     window.onload = function() {
       startAudioLogging();
     };
-<<<<<<< Updated upstream
-
-    // 7) Speech recognition logging
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.continuous = true;
-    recognition.interimResults = false;
-
-    recognition.onresult = function(event) {
-      const transcript = event.results[event.resultIndex][0].transcript;
-      logTimestamp("Speech detected: " + transcript);
-    };
-
-    recognition.start();
-=======
->>>>>>> Stashed changes
   </script>
 
   <!-- Bootstrap JS Bundle -->
