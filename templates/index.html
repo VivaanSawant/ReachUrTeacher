@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Face-Hand Snapshot System</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #1a1a1a;
+            color: white;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+        }
+        #videoFeed {
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+        }
+        #faces {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            max-width: 800px;
+        }
+        .face-card {
+            background: #2a2a2a;
+            padding: 10px;
+            border-radius: 8px;
+            animation: fadeIn 0.5s;
+        }
+        .face-card img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Hand-Triggered Face Snapshots</h1>
+    <div class="container">
+        <img id="videoFeed" src="{{ url_for('video_feed') }}" width="800">
+        <div id="faces"></div>
+    </div>
+
+    <script>
+        let lastUpdate = 0;
+        async function updateFaces() {
+            const now = Date.now();
+            if (now - lastUpdate > 500) {  // Update every 500ms
+                lastUpdate = now;
+                try {
+                    const response = await fetch("/faces_data");
+                    const html = await response.text();
+                    document.getElementById('faces').innerHTML = html;
+                } catch (error) {
+                    console.error('Update error:', error);
+                }
+            }
+            requestAnimationFrame(updateFaces);
+        }
+        updateFaces();
+    </script>
+</body>
+</html>
