@@ -9,6 +9,10 @@ from collections import deque
 
 app = Flask(__name__)
 
+START_HAND_TIME = time.time()
+HAND_DURATION = 0
+
+
 # --- Mediapipe Setup ---
 mp_face_detection = mp.solutions.face_detection
 mp_hands = mp.solutions.hands
@@ -54,7 +58,7 @@ class FaceHandTracker:
         self.hands = mp_hands.Hands(
             min_detection_confidence=MIN_HAND_CONFIDENCE,
             min_tracking_confidence=0.7,
-            max_num_hands=2
+            max_num_hands=5
         )
         self.tracked_faces = {}
         self.hand_history = deque(maxlen=SNAPSHOT_HISTORY)
@@ -112,6 +116,15 @@ class FaceHandTracker:
                     cv2.line(frame, wrist_pos, middle_pos, (255, 255, 0), 2)
 
         self.hand_history.append(active_hands)
+
+        global START_HAND_TIME, HAND_DURATION  # Ensure we modify global vars
+
+        if len(active_hands) == 0:
+            if abs(time.time() - START_HAND_TIME > 1):  # Ensure it exists before using
+                HAND_DURATION = time.time()
+        else:
+            START_HAND_TIME = time.time()
+
 
         # --- FACE-HAND PAIRING & Stopwatch ---
         current_snapshots = {}
@@ -212,7 +225,7 @@ def faces_data():
     html = ""
     for face_key, face_img in tracker.tracked_faces.items():
         # Use the stopwatch start time for this face.
-        start_time = tracker.face_active_start.get(face_key, time.time())
+        start_time = time.time() - HAND_DURATION
         ret, buf = cv2.imencode('.jpg', face_img)
         if ret:
             b64_face = base64.b64encode(buf.tobytes()).decode('utf-8')
@@ -235,7 +248,7 @@ def face_history():
     html = ""
     for face_key, ts, image in rows:
         b64_face = base64.b64encode(image).decode('utf-8')
-        formatted_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(ts))
+        formatted_time = time.time() - HAND_DURATION
         html += f'''
             <div class="face-card" data-facekey="{face_key}" style="margin: 10px; display: inline-block;">
                 <img src="data:image/jpeg;base64,{b64_face}" alt="Face Snapshot" style="width:100px; height:100px; object-fit: cover;"/>
