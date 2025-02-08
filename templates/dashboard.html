@@ -24,9 +24,16 @@
       font-weight: bold;
       display: flex;
       align-items: center;
+      text-decoration: none;
+      color: #fff;
     }
-    .navbar-brand span {
-      margin-left: 0.5rem;
+    .navbar-brand img {
+      height: 32px;
+      margin-right: 8px;
+    }
+    .navbar-brand:hover {
+      color: #fff;
+      text-decoration: none;
     }
 
     /* Main container for video + bottom bar */
@@ -92,8 +99,9 @@
       display: flex;
       gap: 1rem;
       margin-top: 0.5rem;
+      flex-wrap: wrap;
     }
-    /* Each face card (or placeholder) */
+    /* Each face card */
     .face-card {
       background-color: #2a3145;
       border-radius: 4px;
@@ -112,6 +120,7 @@
       height: 100%;
       object-fit: cover;
     }
+
     /* Number label at bottom of each card */
     .card-label {
       position: absolute;
@@ -124,6 +133,18 @@
       padding: 2px 0;
       border-bottom-left-radius: 4px;
       border-bottom-right-radius: 4px;
+    }
+
+    /* The stopwatch text overlay (above card-label or inside card) */
+    .stopwatch {
+      position: absolute;
+      top: 0;
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      text-align: center;
+      font-size: 0.7rem;
+      color: #fff;
+      padding: 2px 0;
     }
 
     /* Red “Clear Hands” button */
@@ -145,9 +166,12 @@
   <!-- Top Navbar -->
   <nav class="navbar navbar-expand-lg">
     <div class="container-fluid">
-      <a class="navbar-brand" href="#">
-        <!-- You could put a hand icon to the left if desired -->
-        <span>ReachUrTeacher</span>
+      <!-- Clickable logo to go home -->
+      <a class="navbar-brand" href="{{ url_for('index') }}">
+        <!-- If you have a logo file in static/images, reference it here -->
+        <img src="image.png"
+             alt="ReachUrTeacher Logo" />
+        ReachUrTeacher
       </a>
       <button
         class="navbar-toggler text-white"
@@ -165,6 +189,16 @@
           <li class="nav-item"><a class="nav-link text-white" href="#">Pricing</a></li>
           <li class="nav-item"><a class="nav-link text-white" href="#">Contact</a></li>
         </ul>
+        <div class="dropdown ms-3">
+          <button class="btn btn-secondary dropdown-toggle" type="button" id="cameraDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            Select Camera
+          </button>
+          <ul class="dropdown-menu" id="cameraList">
+            {% for cam in cameras %}
+            <li><a class="dropdown-item" href="#" onclick="switchCamera('{{ cam.id }}')">{{ cam.name }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
       </div>
     </div>
   </nav>
@@ -192,16 +226,16 @@
     </div>
   </div>
 
-  <!-- Script to update the face queue from /faces_data -->
+  <!-- Script to update the face queue from /faces_data and run the stopwatch -->
   <script>
+    // 1) Periodically fetch /faces_data
     function loadFaceData() {
       fetch("/faces_data")
         .then((res) => res.text())
         .then((html) => {
-          // Insert the returned HTML into #faceQueue
           document.getElementById("faceQueue").innerHTML = html;
 
-          // Count how many face-card divs we have
+          // Count how many face-card divs
           const faceCards = document.querySelectorAll(".face-card");
           document.getElementById("raisedCount").innerText = faceCards.length;
 
@@ -219,16 +253,44 @@
         .catch((err) => console.error(err));
     }
 
-    // Example "Clear Hands" action
+    // 2) Real-time stopwatch for each face-card
+    // We read data-start from each face-card, subtract from current time
+    function updateStopwatches() {
+      const now = Date.now() / 1000; // seconds
+      const faceCards = document.querySelectorAll(".face-card");
+      faceCards.forEach((card) => {
+        const start = parseFloat(card.getAttribute("data-start"));
+        if (!isNaN(start)) {
+          const elapsed = now - start; // in seconds
+          const stopwatchDiv = card.querySelector(".stopwatch");
+          if (stopwatchDiv) {
+            stopwatchDiv.textContent = formatTime(elapsed);
+          }
+        }
+      });
+      requestAnimationFrame(updateStopwatches);
+    }
+
+    function formatTime(seconds) {
+      const s = Math.floor(seconds) % 60;
+      const m = Math.floor(seconds / 60);
+      return m + ":" + (s < 10 ? "0" + s : s);
+    }
+
+    // 3) Clear the queue (client-side)
     function clearHands() {
-      // If you want to remove snapshots on server side,
-      // create an endpoint to reset them, or just clear the front-end:
       document.getElementById("faceQueue").innerHTML = "";
       document.getElementById("raisedCount").innerText = "0";
     }
 
-    // Poll the /faces_data endpoint every 2 seconds
+    // 4) Switch camera feed by passing camera_id as query param
+    function switchCamera(cameraId) {
+      document.getElementById("videoFeed").src = "/video_feed?camera_id=" + cameraId;
+    }
+
+    // Start the periodic tasks
     setInterval(loadFaceData, 2000);
+    requestAnimationFrame(updateStopwatches);
   </script>
 
   <!-- (Optional) Bootstrap JS for Navbar toggling -->
