@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReachUrTeacher</title>
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+</head>
+<body style="text-align: center; font-family: Arial, sans-serif; background-color: #121212; color: white;">
+    <h1>ReachUrTeacher</h1>
+    <p>Empowering Classroom Interaction with Real-time Hand Detection</p>
+    
+    <button py-click="go_to_classroom()" style="padding: 10px 20px; font-size: 16px; background-color: blue; color: white; border: none; cursor: pointer;">
+        Get Started
+    </button>
+
+    <py-script>
+        def go_to_classroom():
+            window.location.href = "classroom"
+    </py-script>
+</body>
+</html>
