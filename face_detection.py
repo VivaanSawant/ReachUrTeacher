@@ -6,7 +6,7 @@ mp_face_detection = mp.solutions.face_detection
 face_detection = mp_face_detection.FaceDetection(min_detection_confidence=0.7)
 
 def detect_faces(frame, rgb_frame):
-    """Detects faces in the frame."""
+    """Detects faces in the frame and returns bounding boxes."""
     face_results = face_detection.process(rgb_frame)
     faces_detected = []
 
