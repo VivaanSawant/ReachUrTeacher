@@ -207,7 +207,7 @@
   // Speech recognition logging
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
   recognition.continuous = true;
-  recognition.interimResults = true;
+  recognition.interimResults = false;
 
   recognition.onresult = function(event) {
     const transcript = event.results[event.resultIndex][0].transcript;

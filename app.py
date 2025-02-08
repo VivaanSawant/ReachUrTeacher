@@ -5,7 +5,6 @@ import time  # NEW: to track timestamps
 from flask import Flask, render_template, Response, request, jsonify
 import numpy as np
 from collections import deque
-import speech_recognition as sr
 from datetime import datetime
 
 app = Flask(__name__)
