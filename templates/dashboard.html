@@ -220,7 +220,13 @@
       <a href="{{ url_for('face_history') }}" class="btn btn-secondary">View Face History</a>
     </div>
 
-    <!-- Timestamp Section -->
+    <!-- Duplicate Timestamp Section -->
+    <div class="timestamp-section">
+      <h3>Highlights</h3>
+      <div id="timestampListCopy"></div>
+    </div>
+
+    <!-- Original Timestamp Section -->
     <div class="timestamp-section">
       <h3>Timestamps</h3>
       <div id="timestampList"></div>
@@ -277,6 +283,7 @@
       document.getElementById("faceQueue").innerHTML = "";
       document.getElementById("raisedCount").innerText = "0";
       document.getElementById("timestampList").innerHTML = "";
+      document.getElementById("timestampListCopy").innerHTML = "";
     }
 
     // Switch camera feed based on the selected camera.
@@ -290,7 +297,39 @@
       const timestampDiv = document.createElement("div");
       timestampDiv.classList.add("timestamp-message");
       timestampDiv.innerHTML = `<span>${timestamp}</span>: ${message}`;
-      document.getElementById("timestampList").appendChild(timestampDiv);
+
+      // Append to the original timestamp section
+      document.getElementById("timestampList").appendChild(timestampDiv.cloneNode(true));
+
+      // Parse the "hands raised" value from the message
+      const handsRaisedMatch = message.match(/Hands Raised: (\d+)/);
+      const handsRaised = handsRaisedMatch ? parseInt(handsRaisedMatch[1], 10) : 0;
+
+      // Create a new div for the copy section
+      const timestampDivCopy = timestampDiv.cloneNode(true);
+
+      // Insert the new div into the correct position in timestampListCopy
+      const timestampListCopy = document.getElementById("timestampListCopy");
+      const existingDivs = timestampListCopy.querySelectorAll(".timestamp-message");
+
+      let inserted = false;
+      for (let i = 0; i < existingDivs.length; i++) {
+        const existingDiv = existingDivs[i];
+        const existingHandsRaisedMatch = existingDiv.textContent.match(/Hands Raised: (\d+)/);
+        const existingHandsRaised = existingHandsRaisedMatch ? parseInt(existingHandsRaisedMatch[1], 10) : 0;
+
+        // Insert the new div before the first div with a smaller or equal hands raised value
+        if (handsRaised > existingHandsRaised) {
+          timestampListCopy.insertBefore(timestampDivCopy, existingDiv);
+          inserted = true;
+          break;
+        }
+      }
+
+      // If the new div wasn't inserted, append it to the end
+      if (!inserted) {
+        timestampListCopy.appendChild(timestampDivCopy);
+      }
     }
 
     // Start periodic tasks.
