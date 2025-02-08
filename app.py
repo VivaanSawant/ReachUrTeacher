@@ -125,7 +125,7 @@ class FaceHandTracker:
 tracker = FaceHandTracker()
 
 def generate_frames():
-    cap = cv2.VideoCapture(0)  # corrected to 0, removing stray "ç"
+    cap = cv2.VideoCapture(1)  # corrected to 0, removing stray "ç"
     while True:
         success, frame = cap.read()
         if not success:
