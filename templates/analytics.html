@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReachUrTeacher – Analytics</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+    body { background-color: #0f172a; color: #ffffff; font-family: 'Inter', sans-serif; }
+    
+    /* Navbar Styling to Match Other Pages */
+    nav.navbar {
+      background-color: #1e293b;
+      padding: 15px 30px;
+      height: 80px; /* Ensure exact height match */
+      display: flex;
+      align-items: center;
+    }
+
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      font-size: 1.5rem;
+      font-weight: 700; /* Keep ReachUrTeacher bold */
+      color: #ffffff;
+      text-decoration: none;
+    }
+
+    .navbar-brand img {
+      height: 40px;
+      margin-right: 10px;
+    }
+
+    .navbar-brand span {
+      font-weight: 700; /* Keep ReachUrTeacher bold */
+      font-size: 1.5rem;
+      color: #ffffff;
+    }
+
+    .navbar a {
+      color: #cbd5e1;
+      margin-left: 20px;
+      text-decoration: none;
+      font-weight: 500; /* Unbold Features & GitHub buttons */
+      font-size: 1.2rem;
+    }
+
+    .navbar a:hover {
+      color: #3b82f6;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; text-align: center; }
+    .analytics-container { padding: 50px 20px; text-align: center; }
+    .analytics-container h1 { font-size: 2.5rem; font-weight: 700; margin-bottom: 20px; }
+    .analytics-container img { max-width: 100%; height: auto; border-radius: 8px; }
+    .footer { background-color: #1e293b; padding: 20px; text-align: center; color: #cbd5e1; font-size: 1rem; font-weight: 500; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="{{ url_for('index') }}">
+      <img src="{{ url_for('static', filename='image.png') }}" alt="ReachUrTeacher Logo">
+      <span>ReachUrTeacher</span> <!-- Keep this bold -->
+    </a>
+    <div class="d-flex">
+      <a href="{{ url_for('dashboard') }}">Dashboard</a>
+      <a href="#features">Features</a>
+      <a href="https://github.com/VivaanSawant/teacherteacher" target="_blank">Github</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Analytics Container -->
+<div class="container analytics-container">
+  <h1>Hand-Raising Analytics</h1>
+  <p>This chart shows the distribution of hand raises over time.</p>
+  <img src="{{ url_for('static', filename='data.png') }}" alt="Hand-Raising Analytics">
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+  <p>&copy; 2025 ReachUrTeacher. All rights reserved.</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
