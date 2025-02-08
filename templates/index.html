@@ -1,181 +1,44 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Face-Hand Snapshot System</title>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: #1a1a1a;
-            color: white;
-        }
-        .container {
-            display: flex;
-            flex-direction: column; /* Stack elements vertically */
-            gap: 20px;
-            padding: 20px;
-        }
-        #videoFeed {
-            border: 2px solid #00ff00;
-            border-radius: 10px;
-        }
-        #faces {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            max-width: 800px;
-        }
-        .face-card {
-            background: #2a2a2a;
-            padding: 10px;
-            border-radius: 8px;
-            animation: fadeIn 0.5s;
-            position: relative;
-            text-align: center;
-        }
-        .face-card img {
-            width: 150px;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 4px;
-        }
-        .hand-label {
-            color: yellow;
-            font-size: 14px;
-            margin-top: 5px;
-            font-weight: bold;
-        }
-        .queue-label {
-            font-size: 18px;
-            color: #00ff00;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-        /* Log Table Styles */
-        table {
-            margin-top: 20px;
-            border-collapse: collapse;
-            width: 80%;
-            text-align: center;
-        }
-        table, th, td {
-            border: 1px solid #444;
-        }
-        th, td {
-            padding: 10px;
-        }
-        th {
-            background-color: #333;
-        }
-        /* New Style for Total Hands */
-        #handCount {
-            font-size: 36px;
-            font-weight: bold;
-            color: #00ff00;
-            background-color: #333;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-            text-align: center;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-            transition: transform 0.3s ease-in-out, background-color 0.3s ease-in-out;
-        }
-        #handCount:hover {
-            background-color: #444;
-            transform: scale(1.05);
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>ReachUrTeacher – Landing</title>
+  <!-- (Optional) Bootstrap CSS -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+  />
+  <!-- your custom styles if desired -->
+  <style>
+    body { background: #111; color: #fff; }
+    .navbar-brand { font-weight: bold; font-size: 1.4rem; }
+  </style>
 </head>
-<body>
-    <h1>Hand-Triggered Face Snapshots</h1>
-    <div class="container">
-        <img id="videoFeed" src="{{ url_for('video_feed') }}" width="800">
-        <div>
-            <div class="queue-label">Queue</div> <!-- Label above the face cards -->
-            <div id="faces"></div>
-        </div>
-    </div>
+<body class="bg-dark text-white">
+  <nav class="navbar navbar-dark bg-dark px-4">
+    <a class="navbar-brand" href="#">ReachUrTeacher</a>
+  </nav>
 
-    <!-- Display the number of detected hands -->
-    <div id="handCount"></div>
+  <div class="container py-5 text-center">
+    <h1 class="display-4">Empower Your Classroom Interaction</h1>
+    <p class="lead">
+      Revolutionize how students engage in class.<br>
+      Our hand‐raising detection system ensures every voice is heard.
+    </p>
+    <!-- "Get Started" leads to /dashboard -->
+    <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg">Get Started</a>
+  </div>
 
-    <!-- Log Table -->
-    <h2>Hand Count Log (5-second Intervals)</h2>
-    <table id="logTable">
-        <thead>
-            <tr>
-                <th>Timestamp</th>
-                <th>Hands Raised</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Log entries will go here -->
-        </tbody>
-    </table>
+  <!-- More feature cards or info if you want -->
 
-    <script>
-        let lastUpdate = 0;
-        let logEntries = [];
+  <div class="container text-center py-5">
+    <h2>Ready to Transform Your Classroom?</h2>
+    <p>Join thousands of educators who have already enhanced their teaching experience.</p>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg">Start Free Trial</a>
+  </div>
 
-        async function updateFaces() {
-            const now = Date.now();
-            if (now - lastUpdate > 500) {  // Update every 500ms
-                lastUpdate = now;
-                try {
-                    const response = await fetch("/faces_data");
-                    const html = await response.text();
-                    document.getElementById('faces').innerHTML = html;
-
-                    // Detect the number of face-card divs (i.e., the number of hands)
-                    const faceCards = document.querySelectorAll('.face-card');
-                    const numberOfHands = faceCards.length;
-
-                    // Label each face-card with a number
-                    faceCards.forEach((card, index) => {
-                        let label = card.querySelector('.hand-label');
-                        if (!label) {
-                            label = document.createElement('div');
-                            label.className = 'hand-label';
-                            card.appendChild(label);
-                        }
-                        label.innerText = `Position ${index + 1}`;
-                    });
-
-                    // Display the count of hands
-                    document.getElementById('handCount').innerText = `Total Hands: ${numberOfHands}`;
-
-                    // Log the hand count every 5 seconds
-                    if (now % 5000 < 500) { // Log every 5 seconds
-                        logHandCount(numberOfHands);
-                    }
-                } catch (error) {
-                    console.error('Update error:', error);
-                }
-            }
-            requestAnimationFrame(updateFaces);
-        }
-
-        // Function to log the hand count with timestamp
-        function logHandCount(handCount) {
-            const timestamp = new Date().toLocaleTimeString();
-            logEntries.push({ timestamp, handCount });
-
-            // Update the log table
-            const logTableBody = document.getElementById('logTable').getElementsByTagName('tbody')[0];
-            const newRow = logTableBody.insertRow();
-            const timestampCell = newRow.insertCell(0);
-            const handCountCell = newRow.insertCell(1);
-
-            timestampCell.textContent = timestamp;
-            handCountCell.textContent = handCount;
-        }
-
-        updateFaces();
-    </script>
+  <footer class="text-center py-3 bg-dark">
+    <small class="text-secondary">&copy; 2025 ReachUrTeacher. All rights reserved.</small>
+  </footer>
 </body>
 </html>
