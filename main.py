@@ -1,5 +1,8 @@
 import cv2
-from face_detection import detect_faces, detect_hands, is_hand_above_face, is_open_palm
+from face_detection import *
+from hand_tracking import *
+from question_manager import *
+from ui_display import *
 
 # Open webcam
 cap = cv2.VideoCapture(0)
