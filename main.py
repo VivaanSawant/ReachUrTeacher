@@ -1,6 +1,6 @@
 import cv2
 from face_detection import detect_faces
-from hand_tracking import detect_hands, detect_pose, is_open_palm, is_hand_above_face
+from hand_tracking import detect_hands, is_open_palm
 from question_manager import add_question, remove_hand, persistent_people
 from ui_display import display_question_queue
 
@@ -16,27 +16,28 @@ while cap.isOpened():
 
     faces_detected = detect_faces(frame, rgb_frame)
     hands_detected = detect_hands(frame, rgb_frame)
-    pose_landmarks = detect_pose(frame, rgb_frame)
 
     active_people = set()
 
-    for hand_id, hand_landmarks in hands_detected.items():
-        if 0 in pose_landmarks and 11 in pose_landmarks and 12 in pose_landmarks:  # Check for key body points
-            left_shoulder_x, _ = pose_landmarks[11]  # Left shoulder
-            right_shoulder_x, _ = pose_landmarks[12]  # Right shoulder
-            shoulder_mid_x = (left_shoulder_x + right_shoulder_x) // 2  # Shoulder center
-            person_id = hand_id  # Unique identifier for a person
+    # For each face, check if any hand is above it and open
+    for face_bbox in faces_detected:
+        fx, fy, fw, fh = face_bbox
+        face_top_y = fy
+        face_left = fx
+        face_right = fx + fw
 
-            for (fx, fy, fw, fh) in faces_detected:
-                face_top_y_normalized = fy / frame.shape[0]
+        for hand_id, hand_landmarks in hands_detected.items():
+            # Get wrist position
+            wrist = hand_landmarks.landmark[0]  # WRIST landmark
+            wrist_x = int(wrist.x * frame.shape[1])
+            wrist_y = int(wrist.y * frame.shape[0])
 
-                if is_open_palm(hand_landmarks) and is_hand_above_face(hand_landmarks, face_top_y_normalized):
-                    face_center_x = fx + fw // 2
-
-                    # Ensure hand belongs to this person by checking alignment with shoulders
-                    if abs(face_center_x - shoulder_mid_x) < fw // 2:
-                        add_question(person_id, frame, faces_detected, pose_landmarks)
-                        active_people.add(person_id)
+            # Check if wrist is above the face and within horizontal bounds
+            if wrist_y < face_top_y and face_left <= wrist_x <= face_right:
+                if is_open_palm(hand_landmarks):
+                    # Add/update the person with this face
+                    add_question(face_bbox, frame)
+                    active_people.add(id(face_bbox))  # Track using face_bbox id
 
     # Remove inactive people
     for tracked_person in list(persistent_people.keys()):
