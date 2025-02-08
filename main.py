@@ -63,7 +63,7 @@ while cap.isOpened():
 
             # Store info if hand is open
             if is_open_palm(hand_landmarks):
-                hand_list.append((hand_id, first_seen_time, hand_landmarks.landmark))
+                hand_list.append((hand_id, first_seen_time, hand_landmarks))
 
     # Sort hands by first detected timestamp (earliest = 1)
     hand_list.sort(key=lambda x: x[1])
@@ -74,13 +74,13 @@ while cap.isOpened():
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
     # Draw the hand mesh for all detected hands
-    for order, (hand_id, _, landmarks) in enumerate(hand_list, start=1):
+    for order, (hand_id, _, hand_landmarks) in enumerate(hand_list, start=1):
         # Draw the hand mesh (landmarks and connections)
         mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
         # Calculate wrist position for displaying the order
-        wrist_x = int(landmarks[mp_hands.HandLandmark.WRIST].x * frame.shape[1])
-        wrist_y = int(landmarks[mp_hands.HandLandmark.WRIST].y * frame.shape[0])
+        wrist_x = int(hand_landmarks.landmark[mp_hands.HandLandmark.WRIST].x * frame.shape[1])
+        wrist_y = int(hand_landmarks.landmark[mp_hands.HandLandmark.WRIST].y * frame.shape[0])
 
         # Display number based on order of raising
         cv2.putText(frame, f"{order}", (wrist_x, wrist_y - 30), 
