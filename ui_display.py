@@ -1,20 +1,19 @@
 import cv2
-from question_manager import face_images, face_positions, clear_question
+from question_manager import face_images, face_positions
 
 def display_question_queue():
     """Display faces in order of hand raising."""
     if face_images:
-        max_faces_per_row = 4
-        face_size = 120
+        max_faces_per_row = 6
+        face_size = 100
         rows = []
         row = []
 
-        for index, (num, face_img) in enumerate(face_images):
+        for hand_id, (num, face_img) in face_images.items():
             face_resized = cv2.resize(face_img, (face_size, face_size))
-            label = cv2.putText(
-                face_resized.copy(), f"#{num}", (5, 20),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2
-            )
+            label = face_resized.copy()
+            cv2.putText(label, f"#{num}", (5, 20),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
             combined = cv2.vconcat([label, face_resized])
             row.append(combined)
 
@@ -27,12 +26,3 @@ def display_question_queue():
 
         face_display = cv2.vconcat(rows)
         cv2.imshow("Raised Hand Order", face_display)
-        cv2.setMouseCallback("Raised Hand Order", on_mouse_click)
-
-def on_mouse_click(event, x, y, flags, param):
-    """Handle mouse click events to remove a face from the queue."""
-    if event == cv2.EVENT_LBUTTONDOWN:
-        for index, (px, py, pw, ph) in enumerate(face_positions):
-            if px < x < px + pw and py < y < py + ph:
-                clear_question(index)
-                return
