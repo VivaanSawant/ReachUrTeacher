@@ -18,8 +18,6 @@ MIN_FACE_CONFIDENCE = 0.75
 HAND_FACE_MAX_DISTANCE_RATIO = 1.5
 SNAPSHOT_HISTORY = 5
 
-<<<<<<< Updated upstream
-=======
 # Speech recognition data storage
 speech_data = []
 
@@ -41,7 +39,6 @@ speech_data = []
 #                 speech_data.append({"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "text": "[API Error]"})
 
 # --- Face and Hand Tracking Class ---
->>>>>>> Stashed changes
 class FaceHandTracker:
     def __init__(self):
         self.face_detection = mp_face_detection.FaceDetection(min_detection_confidence=MIN_FACE_CONFIDENCE)
@@ -207,11 +204,8 @@ def faces_data():
     return html if html else "<div>No active hand-face pairs detected</div>"
 
 if __name__ == '__main__':
-<<<<<<< Updated upstream
-=======
     # Start the speech recognition process in a background thread
     import threading
     # threading.Thread(target=recognize_speech, daemon=True).start()
     
->>>>>>> Stashed changes
     app.run(debug=True)
