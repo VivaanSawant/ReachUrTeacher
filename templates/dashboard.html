@@ -262,6 +262,7 @@
       const faceCards = document.querySelectorAll(".face-card");
       faceCards.forEach((card, i) => {
         const start = parseFloat(card.getAttribute("data-start"));
+        
         if (i === 0 && !isNaN(start)) {       
           const stopwatchDiv = card.querySelector(".stopwatch");
           if (stopwatchDiv) {

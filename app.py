@@ -24,6 +24,7 @@ HAND_FACE_MAX_DISTANCE_RATIO = 1.5
 SNAPSHOT_HISTORY = 5
 
 # --- Database Initialization ---
+# --- Database Initialization ---
 def init_db():
     conn = sqlite3.connect('faces.db')
     cur = conn.cursor()
@@ -38,6 +39,7 @@ def init_db():
     cur.execute("DELETE FROM faces")
     conn.commit()
     conn.close()
+
 
 def store_face_snapshot(face_key, face_img):
     ret, buf = cv2.imencode('.jpg', face_img)
